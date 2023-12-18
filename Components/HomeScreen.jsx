@@ -1,68 +1,31 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { View, Text, Pressable, Image, Platform } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-
-const url = "https://api.api-ninjas.com/v1/imagetotext";
-const key = process.env.X_API_KEY;
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function HomeScreen({ route, navigation }) {
-    let photo = route.params?.photo ?? null;
-    const [text, setText] = useState(null);
-    const [image, setImage] = useState(null);
-    const [type, setType] = useState(null);
+    let url = route.params?.url ?? null;
+    console.log(url);
+    const [cat, setCat] = useState({
+        breed: "",
+        image: "",
+    });
 
-    const pickImage = async () => {
-        try {
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: [4, 3],
-                quality: 1,
-            });
-            if (!result.canceled) {
-                getText(result.uri);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const getText = async (photo) => {
-        if (!photo) return;
-        var formData = new FormData();
-        formData.append("image", {
-            uri:
-                Platform.OS === "android"
-                    ? photo
-                    : photo.replace("file://", ""),
-            type: "image/jpeg",
-            name: photo.replace("file://", ""),
+    const getCat = async () => {
+        if (url === null) return;
+        let res = await fetch(url);
+        console.log(res);
+        let json = await res.json();
+        console.log(json);
+        setCat({
+            breed: json[0].breeds[0].name,
+            image: json[0].url,
         });
-        try {
-            let response = await fetch(
-                url,
-                {
-                    method: "POST",
-                    headers: {
-                        "X-Api-Key": key,
-                        "Content-Type": "multipart/form-data",
-                    },
-                    body: formData,
-                },
-                { mode: "no-cors" }
-            );
-            let data = await response.json();
-            setText(data);
-            console.log(data);
-            return data;
-        } catch (error) {
-            console.error(error);
-        }
     };
-    const updateText = async () => {
-        const response = await getText(photo);
-        return response;
-    };
+
+    useEffect(() => {
+        getCat();
+    }, [url]);
+
     return (
         <View
             style={{
@@ -81,18 +44,19 @@ export default function HomeScreen({ route, navigation }) {
                     justifyContent: "center",
                 }}
             >
-                <Text style={{ fontSize: 20, padding: 20 }}></Text>
-                {photo && (
+                {cat.image !== "" ? (
                     <Image
-                        source={{ uri: photo }}
+                        source={{ uri: cat.image }}
                         style={{
                             width: "90%",
                             height: "90%",
-                            alignContent: "center",
-                            alignSelf: "center",
+                            resizeMode: "contain",
                         }}
-                    />
+                    ></Image>
+                ) : (
+                    <Text>Loading...</Text>
                 )}
+                <Text style={{ fontSize: 20, padding: 20 }}>{cat.breed}</Text>
             </View>
             <View
                 style={{
@@ -112,6 +76,7 @@ export default function HomeScreen({ route, navigation }) {
                         borderWidth: 1,
                     }}
                     onPress={() => {
+                        url = null;
                         navigation.navigate("Menu", {
                             data: "Message from Home",
                         });

@@ -1,60 +1,80 @@
 import { useState, useRef } from "react";
-import { View, Text, Pressable } from "react-native";
-import { Camera, CameraType } from "expo-camera";
+import { View, Text, Pressable, Alert } from "react-native";
+import { SelectList } from "react-native-dropdown-select-list";
 
 export default function MenuScreen({ navigation }) {
-    const [permission, setPermission] = Camera.useCameraPermissions();
-    const [type, setType] = useState(CameraType.back);
-    const [photo, setPhoto] = useState(null);
-    const cameraRef = useRef(null);
+    const [selected, setSelected] = useState(null);
+    const data = [
+        { key: 1, value: "Cat" },
+        { key: 2, value: "Dog" },
+        { key: 3, value: "Bird", disabled: true },
+        { key: 4, value: "Fish", disabled: true },
+        { key: 5, value: "Hamster", disabled: true },
+    ];
+    const api = {
+        1: {
+            value: `https://api.thecatapi.com/v1/images/search?limit=1&has_breeds=1&api_key=${process.env.CAT_API_KEY}`,
+        },
+        2: {
+            value: `https://api.thedogapi.com/v1/images/search?limit=1&has_breeds=1&api_key=${process.env.DOG_API_KEY}`,
+        },
+    };
     return (
-        <View style={{ height: "100%" }}>
-            <Camera
-                style={{ flex: 1, width: "100%" }}
-                type={type}
-                ref={cameraRef}
-                zoom={0}
+        <View
+            style={{
+                flex: 1,
+                width: "100%",
+                flexDirection: "column",
+                backgroundColor: "fff",
+            }}
+        >
+            <View>
+                <SelectList
+                    setSelected={(val) => {
+                        setSelected(val);
+                    }}
+                    data={data}
+                    save="value"
+                />
+            </View>
+            <View
+                style={{
+                    flex: 1,
+                    width: "100%",
+                    alignSelf: "center",
+                    alignItems: "center",
+                    backgroundColor: "#fff",
+                }}
             >
-                <View
+                <Pressable
                     style={{
+                        alignSelf: "center",
+                        alignContent: "center",
+                        alignItems: "center",
                         position: "absolute",
-                        bottom: 0,
-                        flexDirection: "row",
-                        flex: 1,
-                        width: "100%",
+                        bottom: 20,
                         padding: 20,
-                        justifyContent: "space-between",
+                        borderRadius: 50,
+                        borderWidth: 1,
+                    }}
+                    onPress={() => {
+                        if (selected !== null) {
+                            let url =
+                                api[data.find((x) => x.value == selected).key]
+                                    .value;
+                            // console.log(selected);
+                            // console.log(url);
+                            navigation.navigate("Home", {
+                                url: url,
+                            });
+                        } else {
+                            Alert.alert("Please select an animal");
+                        }
                     }}
                 >
-                    <View
-                        style={{
-                            alignSelf: "center",
-                            flex: 1,
-                            alignItems: "center",
-                        }}
-                    >
-                        <Pressable
-                            style={{
-                                width: 70,
-                                height: 70,
-                                bottom: 0,
-                                borderRadius: 50,
-                                backgroundColor: "#fff",
-                            }}
-                            onPress={async () => {
-                                if (cameraRef.current) {
-                                    let photo =
-                                        await cameraRef.current.takePictureAsync();
-                                    console.log(photo);
-                                    navigation.navigate("Home", {
-                                        photo: photo.uri,
-                                    });
-                                }
-                            }}
-                        ></Pressable>
-                    </View>
-                </View>
-            </Camera>
+                    <Text>Done</Text>
+                </Pressable>
+            </View>
         </View>
     );
 }
