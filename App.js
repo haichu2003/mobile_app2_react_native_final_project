@@ -2,18 +2,20 @@ import { useState } from "react";
 import { StyleSheet, Text, View, FlatList } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
 
 import MenuScreen from "./Components/MenuScreen";
 import HomeScreen from "./Components/HomeScreen";
 
 const Tab = createMaterialTopTabNavigator();
+const Stack = createStackNavigator();
 
 function MyTabs() {
     return (
-        <Tab.Navigator>
-            <Tab.Screen name="Home" component={HomeScreen} />
-            <Tab.Screen name="Settings" component={MenuScreen} />
-        </Tab.Navigator>
+        <Stack.Navigator>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Menu" component={MenuScreen} />
+        </Stack.Navigator>
     );
 }
 
